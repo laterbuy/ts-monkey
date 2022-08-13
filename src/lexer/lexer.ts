@@ -1,23 +1,13 @@
-import { Token, TokenType } from "../type/token";
-import * as token from "../token/token";
+import { Token, TokenType } from "../token/tokenType";
+import { token, keywords } from "../token/tokenConst";
 
-interface LexerType {
+export default class Lexer {
   input: string;
-  position?: number; // current position in input (points to current char)
-  readPosition?: number; // current reading position in input (after current char)
-  ch?: string; // current char under examination
-}
-
-export default class Lexer implements LexerType {
-  input: string;
-  readPosition: number;
-  ch: string;
-  position: number;
+  position: number = 0; // current position in input (points to current char)
+  readPosition: number = 0; // current reading position in input (after current char)
+  ch: string = ""; // current char under examination
   constructor(input: string) {
     this.input = input;
-    this.readPosition = 0;
-    this.position = 0;
-    this.ch = '';
     this.readChar();
   }
   /**
@@ -38,7 +28,7 @@ export default class Lexer implements LexerType {
    * @description: 下一个token
    * @return {*}
    */
-  nextToken() {
+  nextToken(): Token {
     let tok = {} as Token;
     this.skipWhitespace();
     switch (this.ch) {
@@ -47,69 +37,69 @@ export default class Lexer implements LexerType {
           const ch = this.ch;
           this.readChar();
           const literal = ch + this.ch;
-          tok = { Type: token.EQ, Literal: literal };
+          tok = { type: token.EQ, literal };
         } else {
           tok = this.newToken(token.ASSIGN, this.ch);
         }
-        break
+        break;
       case "+":
         tok = this.newToken(token.PLUS, this.ch);
-        break
+        break;
       case "-":
         tok = this.newToken(token.MINUS, this.ch);
-        break
+        break;
       case "!":
         if (this.peekChar() == "=") {
           const ch = this.ch;
           this.readChar();
           const literal = ch + this.ch;
-          tok = { Type: token.NOT_EQ, Literal: literal };
+          tok = { type: token.NOT_EQ, literal };
         } else {
           tok = this.newToken(token.BANG, this.ch);
         }
-        break
+        break;
       case "/":
         tok = this.newToken(token.SLASH, this.ch);
-        break
+        break;
       case "*":
         tok = this.newToken(token.ASTERISK, this.ch);
-        break
+        break;
       case "<":
         tok = this.newToken(token.LT, this.ch);
-        break
+        break;
       case ">":
         tok = this.newToken(token.GT, this.ch);
-        break
+        break;
       case ";":
         tok = this.newToken(token.SEMICOLON, this.ch);
-        break
+        break;
       case ",":
         tok = this.newToken(token.COMMA, this.ch);
-        break
+        break;
       case "{":
         tok = this.newToken(token.LBRACE, this.ch);
-        break
+        break;
       case "}":
         tok = this.newToken(token.RBRACE, this.ch);
-        break
+        break;
       case "(":
         tok = this.newToken(token.LPAREN, this.ch);
-        break
+        break;
       case ")":
         tok = this.newToken(token.RPAREN, this.ch);
-        break
+        break;
       case "":
-        tok.Literal = "";
-        tok.Type = token.EOF;
-        break
+        tok.literal = "";
+        tok.type = token.EOF;
+        break;
       default:
         if (this.isLetter(this.ch)) {
-          tok.Literal = this.readIdentifier();
-          tok.Type = token.keywords[tok.Literal] || token.IDENT;
+          tok.literal = this.readIdentifier();
+          tok.type = keywords[tok.literal] || token.IDENT;
           return tok;
         } else if (this.isDigit(this.ch)) {
-          tok.Type = token.INT;
-          tok.Literal = this.readNumber();
+          tok.type = token.INT;
+          tok.literal = this.readNumber();
           return tok;
         } else {
           tok = this.newToken(token.ILLEGAL, this.ch);
@@ -184,7 +174,7 @@ export default class Lexer implements LexerType {
    * @return {*}
    */
   newToken(tokenType: TokenType, ch: string): Token {
-    return { Type: tokenType, Literal: ch } as Token;
+    return { type: tokenType, literal: ch } as Token;
   }
 
   /**
